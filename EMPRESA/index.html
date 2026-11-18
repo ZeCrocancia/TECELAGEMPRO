@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TecelagemPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#1e3a8a',
+              accent: '#0284c7',
+              success: '#16a34a',
+              warning: '#d97706',
+              danger: '#dc2626',
+              canvas: '#f8fafc'
+            },
+            boxShadow: {
+              soft: '0 12px 30px rgba(15, 23, 42, 0.08)'
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-6">
+      <div class="w-full max-w-5xl grid overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-soft lg:grid-cols-2">
+        <div class="hidden bg-gradient-to-br from-brand via-blue-800 to-accent p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <div class="inline-flex items-center gap-3 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm">
+              <i data-lucide="factory" class="h-5 w-5"></i>
+              TecelagemPro
+            </div>
+            <h1 class="mt-8 text-4xl font-extrabold leading-tight">Controle de produção e eficiência têxtil</h1>
+            <p class="mt-4 max-w-md text-base text-blue-100">
+              Acompanhe telares, maximize a produtividade e reduza perdas com indicadores em tempo real.
+            </p>
+          </div>
+
+          <div class="grid gap-4 text-sm text-blue-100">
+            <div class="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-4">
+              <i data-lucide="bar-chart-3" class="h-5 w-5 text-cyan-200"></i>
+              <span>Indicadores de eficiência por turno e telar</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-4">
+              <i data-lucide="trending-down" class="h-5 w-5 text-cyan-200"></i>
+              <span>Monitoramento de perdas financeiras e paradas</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center p-6 sm:p-8">
+          <div class="w-full max-w-md">
+            <div class="mb-6 text-center">
+              <h2 class="text-2xl font-bold text-slate-900">Acesso ao sistema</h2>
+              <p id="auth-subtitle" class="mt-2 text-sm text-slate-500">Entre com sua conta para continuar.</p>
+            </div>
+
+            <div class="mb-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
+              <button type="button" id="tab-login" class="auth-tab active rounded-xl px-4 py-3 text-sm font-semibold text-brand">Entrar</button>
+              <button type="button" id="tab-register" class="auth-tab rounded-xl px-4 py-3 text-sm font-semibold text-slate-500">Cadastrar</button>
+            </div>
+
+            <form id="login-form" class="auth-form space-y-4">
+              <div>
+                <label for="login-email" class="mb-2 block text-sm font-medium text-slate-700">E-mail</label>
+                <input id="login-email" type="email" class="form-input" placeholder="seu@email.com" required />
+              </div>
+              <div>
+                <label for="login-password" class="mb-2 block text-sm font-medium text-slate-700">Senha</label>
+                <input id="login-password" type="password" class="form-input" placeholder="••••••••" required />
+              </div>
+              <button type="submit" class="btn-primary w-full">
+                <i data-lucide="log-in" class="h-4 w-4"></i>
+                Entrar
+              </button>
+              <p class="text-center text-sm text-slate-500">
+                Ainda não tem conta?
+                <button type="button" id="login-toggle-link" class="ml-1 font-semibold text-brand underline underline-offset-2">Cadastre-se</button>
+              </p>
+            </form>
+
+            <form id="register-form" class="auth-form hidden space-y-4">
+              <div>
+                <label for="register-name" class="mb-2 block text-sm font-medium text-slate-700">Nome completo</label>
+                <input id="register-name" type="text" class="form-input" placeholder="Seu nome" required />
+              </div>
+              <div>
+                <label for="register-role" class="mb-2 block text-sm font-medium text-slate-700">Cargo</label>
+                <input id="register-role" type="text" class="form-input" placeholder="Operador / Supervisor" required />
+              </div>
+              <div>
+                <label for="register-sector" class="mb-2 block text-sm font-medium text-slate-700">Setor</label>
+                <input id="register-sector" type="text" class="form-input" placeholder="Produção / Engenharia" required />
+              </div>
+              <div>
+                <label for="register-email" class="mb-2 block text-sm font-medium text-slate-700">E-mail</label>
+                <input id="register-email" type="email" class="form-input" placeholder="seu@email.com" required />
+              </div>
+              <div>
+                <label for="register-password" class="mb-2 block text-sm font-medium text-slate-700">Senha</label>
+                <input id="register-password" type="password" class="form-input" placeholder="Mínimo 6 caracteres" minlength="6" required />
+              </div>
+              <button type="submit" class="btn-primary w-full">
+                <i data-lucide="user-plus" class="h-4 w-4"></i>
+                Criar conta
+              </button>
+              <p class="text-center text-sm text-slate-500">
+                Já possui acesso?
+                <button type="button" id="register-toggle-link" class="ml-1 font-semibold text-brand underline underline-offset-2">Entrar</button>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="app-shell" class="hidden min-h-screen bg-slate-50">
+      <aside class="fixed inset-y-0 left-0 z-20 flex w-72 flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm">
+        <div class="flex items-center gap-3 border-b border-slate-200 px-6 py-5">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand text-white shadow-soft">
+            <i data-lucide="factory" class="h-5 w-5"></i>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Sistema</p>
+            <h1 class="text-lg font-bold text-slate-900">TecelagemPro</h1>
+          </div>
+        </div>
+
+        <nav class="mt-6 space-y-2 px-4">
+          <button type="button" class="nav-button active w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-brand" data-view="dashboard">
+            <span class="flex items-center gap-3"><i data-lucide="layout-dashboard" class="h-4 w-4"></i> Dashboard</span>
+          </button>
+          <button type="button" class="nav-button w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-600" data-view="telares">
+            <span class="flex items-center gap-3"><i data-lucide="cog" class="h-4 w-4"></i> Telares</span>
+          </button>
+          <button type="button" class="nav-button w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-600" data-view="produtos">
+            <span class="flex items-center gap-3"><i data-lucide="shirt" class="h-4 w-4"></i> Produtos</span>
+          </button>
+          <button type="button" class="nav-button w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-600" data-view="apontamentos">
+            <span class="flex items-center gap-3"><i data-lucide="clipboard-list" class="h-4 w-4"></i> Apontamentos</span>
+          </button>
+        </nav>
+
+        <div class="mt-auto border-t border-slate-200 p-4">
+          <div class="mb-3 flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-white">
+              <i data-lucide="user" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p id="user-name" class="text-sm font-semibold text-slate-800">Usuário</p>
+              <p class="text-xs text-slate-500">Sessão ativa</p>
+            </div>
+          </div>
+          <button id="logout-button" type="button" class="btn-secondary w-full justify-center">
+            <i data-lucide="log-out" class="h-4 w-4"></i>
+            Sair
+          </button>
+        </div>
+      </aside>
+
+      <main class="ml-72 p-6 lg:p-8">
+        <section id="dashboard-section" class="view-section active space-y-6">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p class="text-sm font-medium uppercase tracking-[0.2em] text-brand">Dashboard</p>
+              <h2 class="mt-1 text-3xl font-bold text-slate-900">Indicadores da produção</h2>
+            </div>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <article class="metric-card">
+              <div class="metric-icon bg-emerald-100 text-emerald-600"><i data-lucide="target" class="h-5 w-5"></i></div>
+              <div>
+                <p class="text-sm text-slate-500">Eficiência média</p>
+                <p id="metric-efficiency" class="mt-2 text-3xl font-extrabold text-slate-900">0%</p>
+              </div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-icon bg-blue-100 text-blue-600"><i data-lucide="ruler" class="h-5 w-5"></i></div>
+              <div>
+                <p class="text-sm text-slate-500">Produzidos</p>
+                <p id="metric-produced" class="mt-2 text-3xl font-extrabold text-slate-900">0 m</p>
+              </div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-icon bg-cyan-100 text-cyan-600"><i data-lucide="clipboard-check" class="h-5 w-5"></i></div>
+              <div>
+                <p class="text-sm text-slate-500">Planejados</p>
+                <p id="metric-planned" class="mt-2 text-3xl font-extrabold text-slate-900">0 m</p>
+              </div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-icon bg-rose-100 text-rose-600"><i data-lucide="wallet" class="h-5 w-5"></i></div>
+              <div>
+                <p class="text-sm text-slate-500">Perdas financeiras</p>
+                <p id="metric-loss" class="mt-2 text-3xl font-extrabold text-slate-900">R$ 0,00</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="card-panel">
+            <div class="mb-5 flex items-center justify-between">
+              <h3 class="text-xl font-bold text-slate-900">Filtros do período</h3>
+            </div>
+            <div class="grid gap-4 md:grid-cols-4">
+              <div>
+                <label class="label-text">Data inicial</label>
+                <input id="filter-start-date" type="date" class="form-input" />
+              </div>
+              <div>
+                <label class="label-text">Data final</label>
+                <input id="filter-end-date" type="date" class="form-input" />
+              </div>
+              <div>
+                <label class="label-text">Telar</label>
+                <select id="filter-telar" class="form-input">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div>
+                <label class="label-text">Produto</label>
+                <select id="filter-produto" class="form-input">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-panel">
+            <div class="mb-4">
+              <h3 class="text-xl font-bold text-slate-900">Perdas por motivo de parada</h3>
+              <p class="mt-1 text-sm text-slate-500">Valor financeiro das perdas no período e filtros selecionados.</p>
+            </div>
+            <div class="relative h-80">
+              <canvas id="loss-by-reason-chart" role="img" aria-label="Gráfico de perdas financeiras por motivo de parada"></canvas>
+            </div>
+            <p id="loss-chart-empty" class="hidden py-8 text-center text-sm text-slate-500">Sem perdas registradas para os filtros selecionados.</p>
+          </div>
+
+          <div class="card-panel">
+            <div class="mb-4">
+              <h3 class="text-xl font-bold text-slate-900">Frequência dos motivos de parada</h3>
+              <p class="mt-1 text-sm text-slate-500">Quantidade de apontamentos por motivo no período e filtros selecionados.</p>
+            </div>
+            <div class="relative h-80">
+              <canvas id="reason-frequency-chart" role="img" aria-label="Gráfico de frequência dos motivos de parada"></canvas>
+            </div>
+            <p id="reason-frequency-empty" class="hidden py-8 text-center text-sm text-slate-500">Sem apontamentos registrados para os filtros selecionados.</p>
+          </div>
+
+          <div class="card-panel">
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="text-xl font-bold text-slate-900">Apontamentos do período</h3>
+              <span id="dashboard-counter" class="rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">0 registros</span>
+            </div>
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full min-w-[780px] text-left text-sm text-slate-700">
+                <thead class="bg-slate-100 text-slate-600">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">Data</th>
+                    <th class="px-4 py-3 font-semibold">Telar</th>
+                    <th class="px-4 py-3 font-semibold">Produto</th>
+                    <th class="px-4 py-3 font-semibold">Turno</th>
+                    <th class="px-4 py-3 font-semibold">Planejado</th>
+                    <th class="px-4 py-3 font-semibold">Produzido</th>
+                    <th class="px-4 py-3 font-semibold">Eficiência</th>
+                    <th class="px-4 py-3 font-semibold">Perda</th>
+                    <th class="px-4 py-3 font-semibold">Motivo da Parada</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="telares-section" class="view-section hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium uppercase tracking-[0.2em] text-brand">Cadastro 1</p>
+              <h2 class="mt-1 text-3xl font-bold text-slate-900">Telares</h2>
+            </div>
+          </div>
+
+          <div class="grid gap-6 xl:grid-cols-[420px,1fr]">
+            <form id="telar-form" class="card-panel space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 id="telar-form-title" class="text-xl font-bold text-slate-900">Novo telar</h3>
+              </div>
+
+              <div>
+                <label class="label-text">Código do telar</label>
+                <input id="telar-codigo" class="form-input" placeholder="TEL-001" required />
+              </div>
+
+              <div>
+                <label class="label-text">Tipo</label>
+                <select id="telar-tipo" class="form-input" required>
+                  <option value="Jato de Ar">Jato de Ar</option>
+                  <option value="Pinça">Pinça</option>
+                  <option value="Lançadeira">Lançadeira</option>
+                  <option value="Semicircular">Semicircular</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="label-text">RPM nominal</label>
+                <input id="telar-rpm" type="number" min="1" class="form-input" placeholder="2800" required />
+              </div>
+
+              <div>
+                <label class="label-text">Status</label>
+                <select id="telar-status" class="form-input" required>
+                  <option value="Ativo">Ativo</option>
+                  <option value="Manutenção">Manutenção</option>
+                  <option value="Inativo">Inativo</option>
+                </select>
+              </div>
+
+              <div class="flex gap-3 pt-2">
+                <button type="submit" class="btn-primary flex-1">
+                  <i data-lucide="save" class="h-4 w-4"></i>
+                  Salvar
+                </button>
+                <button type="button" id="cancel-telar-edit" class="btn-secondary hidden">Cancelar</button>
+              </div>
+            </form>
+
+            <div class="card-panel overflow-hidden">
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-900">Lista de telares</h3>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[600px] text-left text-sm text-slate-700">
+                  <thead class="bg-slate-100 text-slate-600">
+                    <tr>
+                      <th class="px-4 py-3 font-semibold">Código</th>
+                      <th class="px-4 py-3 font-semibold">Tipo</th>
+                      <th class="px-4 py-3 font-semibold">RPM</th>
+                      <th class="px-4 py-3 font-semibold">Status</th>
+                      <th class="px-4 py-3 font-semibold text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="telares-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="produtos-section" class="view-section hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium uppercase tracking-[0.2em] text-brand">Cadastro 2</p>
+              <h2 class="mt-1 text-3xl font-bold text-slate-900">Produtos / Tecidos</h2>
+            </div>
+          </div>
+
+          <div class="grid gap-6 xl:grid-cols-[420px,1fr]">
+            <form id="produto-form" class="card-panel space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 id="produto-form-title" class="text-xl font-bold text-slate-900">Novo produto</h3>
+              </div>
+
+              <div>
+                <label class="label-text">Nome do tecido</label>
+                <input id="produto-nome" class="form-input" placeholder="Algodão 100%" required />
+              </div>
+
+              <div>
+                <label class="label-text">Composição</label>
+                <input id="produto-composicao" class="form-input" placeholder="100% Algodão" required />
+              </div>
+
+              <div>
+                <label class="label-text">Custo do metro base</label>
+                <input id="produto-custo" type="number" min="0" step="0.01" class="form-input" placeholder="12.50" required />
+              </div>
+
+              <div>
+                <label class="label-text">Preço de venda por metro</label>
+                <input id="produto-preco" type="number" min="0" step="0.01" class="form-input" placeholder="24.90" required />
+              </div>
+
+              <div class="flex gap-3 pt-2">
+                <button type="submit" class="btn-primary flex-1">
+                  <i data-lucide="save" class="h-4 w-4"></i>
+                  Salvar
+                </button>
+                <button type="button" id="cancel-produto-edit" class="btn-secondary hidden">Cancelar</button>
+              </div>
+            </form>
+
+            <div class="card-panel overflow-hidden">
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-900">Catálogo de tecidos</h3>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[700px] text-left text-sm text-slate-700">
+                  <thead class="bg-slate-100 text-slate-600">
+                    <tr>
+                      <th class="px-4 py-3 font-semibold">Produto</th>
+                      <th class="px-4 py-3 font-semibold">Composição</th>
+                      <th class="px-4 py-3 font-semibold">Custo</th>
+                      <th class="px-4 py-3 font-semibold">Venda</th>
+                      <th class="px-4 py-3 font-semibold text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="produtos-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="apontamentos-section" class="view-section hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium uppercase tracking-[0.2em] text-brand">Cadastro 3</p>
+              <h2 class="mt-1 text-3xl font-bold text-slate-900">Apontamentos de produção</h2>
+            </div>
+          </div>
+
+          <div class="grid gap-6 xl:grid-cols-[420px,1fr]">
+            <form id="apontamento-form" class="card-panel space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 id="apontamento-form-title" class="text-xl font-bold text-slate-900">Novo apontamento</h3>
+              </div>
+
+              <div>
+                <label class="label-text">Telar</label>
+                <select id="apontamento-telar" class="form-input" required></select>
+              </div>
+
+              <div>
+                <label class="label-text">Produto</label>
+                <select id="apontamento-produto" class="form-input" required></select>
+              </div>
+
+              <div>
+                <label class="label-text">Data</label>
+                <input id="apontamento-data" type="date" class="form-input" required />
+              </div>
+
+              <div>
+                <label class="label-text">Turno</label>
+                <select id="apontamento-turno" class="form-input" required>
+                  <option value="Turno A">Turno A</option>
+                  <option value="Turno B">Turno B</option>
+                  <option value="Turno C">Turno C</option>
+                </select>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="label-text">Metros planejados</label>
+                  <input id="apontamento-planejados" type="number" min="0" step="0.01" class="form-input" placeholder="1500" required />
+                </div>
+                <div>
+                  <label class="label-text">Metros produzidos</label>
+                  <input id="apontamento-produzidos" type="number" min="0" step="0.01" class="form-input" placeholder="1320" required />
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="label-text">Horas paradas</label>
+                  <input id="apontamento-paradas" type="number" min="0" step="0.25" class="form-input" placeholder="2.50" />
+                </div>
+                <div>
+                  <label class="label-text">Motivo da parada</label>
+                  <input id="apontamento-motivo" class="form-input" placeholder="Troca de fio / manutenção" />
+                </div>
+              </div>
+
+              <div class="flex gap-3 pt-2">
+                <button type="submit" class="btn-primary flex-1">
+                  <i data-lucide="save" class="h-4 w-4"></i>
+                  Salvar
+                </button>
+                <button type="button" id="cancel-apontamento-edit" class="btn-secondary hidden">Cancelar</button>
+              </div>
+            </form>
+
+            <div class="card-panel overflow-hidden">
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-900">Histórico de apontamentos</h3>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[700px] text-left text-sm text-slate-700">
+                  <thead class="bg-slate-100 text-slate-600">
+                    <tr>
+                      <th class="px-4 py-3 font-semibold">Data</th>
+                      <th class="px-4 py-3 font-semibold">Telar</th>
+                      <th class="px-4 py-3 font-semibold">Produto</th>
+                      <th class="px-4 py-3 font-semibold">Eficiência</th>
+                      <th class="px-4 py-3 font-semibold">Perda</th>
+                      <th class="px-4 py-3 font-semibold">Paradas</th>
+                      <th class="px-4 py-3 font-semibold">Motivo da Parada</th>
+                      <th class="px-4 py-3 font-semibold text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="apontamentos-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
